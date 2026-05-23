@@ -9,10 +9,10 @@ class Book:
     description = ""
     url = ""
 
-    def __init__(self, name, authors, publicaitonDate = None, ISBN = None, cover_page = None, description = None, url = None):
+    def __init__(self, name, authors, publicatonDate = None, ISBN = None, cover_page = None, description = None, url = None):
         self.name = name
         self.authors = authors
-        self.publicationDate = publicationDate
+        self.publicationDate = publicatonDate
         self.ISBN = ISBN
         self.cover_page = cover_page
         self.description = description
