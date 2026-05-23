@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ book.name }}</title>
+</head>
+<body>
+    <p>
+        <a href="/">Back to search</a>
+    </p>
+
+    <h1>{{ book.name }}</h1>
+
+    {% if book.cover_page %}
+        <img src="{{ book.cover_page }}" width="180">
+    {% endif %}
+
+    <p>
+        <strong>Authors:</strong>
+        {% if book.authors %}
+            {{ book.authors | join(", ") }}
+        {% else %}
+            Unknown
+        {% endif %}
+    </p>
+
+    <p>
+        <strong>Published:</strong>
+        {{ book.publicationDate or "Unknown" }}
+    </p>
+
+    <p>
+        <strong>ISBN:</strong>
+        {{ book.ISBN or "No ISBN found" }}
+    </p>
+
+    <h2>Description</h2>
+
+    {% if book.description %}
+        <p>{{ book.description }}</p>
+    {% else %}
+        <p>No description available.</p>
+    {% endif %}
+
+    {% if book.url %}
+        <p>
+            <a href="{{ book.url }}" target="_blank">
+                View on Open Library
+            </a>
+        </p>
+    {% endif %}
+</body>
+</html>

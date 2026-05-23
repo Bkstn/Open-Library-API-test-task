@@ -22,7 +22,15 @@
         {% if books %}
             {% for book in books %}
                 <div>
-                    <h3>{{ book.name }}</h3>
+                    <h3>
+    {% if book.openlibrary_key %}
+        <a href="/book{{ book.openlibrary_key }}">
+            {{ book.name }}
+        </a>
+    {% else %}
+        {{ book.name }}
+    {% endif %}
+</h3>
 
                     <p>
                         <strong>Authors:</strong>
