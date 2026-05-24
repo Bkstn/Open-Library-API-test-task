@@ -50,5 +50,23 @@
             </a>
         </p>
     {% endif %}
+
+    {% if book.openlibrary_key %}
+    <button
+        type="button"
+        class="favorite-button"
+        data-book-id="{{ book.openlibrary_key }}"
+        data-book-title="{{ book.name }}"
+        data-book-authors="{{ book.authors | join(', ') }}"
+        data-book-year="{{ book.publicationDate or '' }}"
+        data-book-isbn="{{ book.ISBN or '' }}"
+        data-book-cover="{{ book.cover_page or '' }}"
+        data-book-url="{{ book.url or '' }}"
+        data-book-detail-url="{{ url_for('book_detail', book_key=book.openlibrary_key.lstrip('/')) }}"
+    >
+        Add to favorites
+    </button>
+{% endif %}
+<script src="{{ url_for('static', filename='favorites.js') }}"></script>
 </body>
 </html>

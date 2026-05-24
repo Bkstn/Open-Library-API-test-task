@@ -10,53 +10,8 @@
         <a href="{{ url_for('home') }}">Back to search</a>
     </p>
 
-    {% if favorites %}
-        {% for book in favorites %}
-            <div>
-                <h3>
-                    <a href="{{ url_for('book_detail', book_key=book.openlibrary_key) }}">
-                        {{ book.name }}
-                    </a>
-                </h3>
+    <div id="favorites-list"></div>
 
-                <p>
-                    <strong>Authors:</strong>
-                    {% if book.authors %}
-                        {{ book.authors | join(", ") }}
-                    {% else %}
-                        Unknown
-                    {% endif %}
-                </p>
-
-                <p>
-                    <strong>Published:</strong>
-                    {{ book.publicationDate or "Unknown" }}
-                </p>
-
-                {% if book.cover_page %}
-                    <img src="{{ book.cover_page }}" width="120">
-                {% endif %}
-
-                {% if book.url %}
-                    <p>
-                        <a href="{{ book.url }}" target="_blank">
-                            View on Open Library
-                        </a>
-                    </p>
-                {% endif %}
-
-                <form 
-                    action="{{ url_for('remove_favorite', book_key=book.openlibrary_key) }}" 
-                    method="post"
-                >
-                    <button type="submit">Remove from favorites</button>
-                </form>
-
-                <hr>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No favorite books yet.</p>
-    {% endif %}
+    <script src="{{ url_for('static', filename='favorites.js') }}"></script>
 </body>
 </html>

@@ -26,7 +26,24 @@
 
         {% if books %}
             {% for book in books %}
+            {% if book.openlibrary_key %}
+    
+{% endif %}
                 <div>
+                    <button
+        type="button"
+        class="favorite-button"
+        data-book-id="{{ book.openlibrary_key }}"
+        data-book-title="{{ book.name }}"
+        data-book-authors="{{ book.authors | join(', ') }}"
+        data-book-year="{{ book.publicationDate or '' }}"
+        data-book-isbn="{{ book.ISBN or '' }}"
+        data-book-cover="{{ book.cover_page or '' }}"
+        data-book-url="{{ book.url or '' }}"
+        data-book-detail-url="{{ url_for('book_detail', book_key=book.openlibrary_key.lstrip('/')) }}"
+    >
+        Add to favorites
+    </button>
                     <h3>
     {% if book.openlibrary_key %}
         <a href="/book{{ book.openlibrary_key }}">
@@ -64,14 +81,6 @@
                         </p>
                     {% endif %}
 
-                    {% if book.openlibrary_key %}
-                        <form 
-                            action="{{ url_for('add_favorite', book_key=book.openlibrary_key.lstrip('/')) }}" 
-                            method="post"
-                        >
-                            <button type="submit">Add to favorites</button>
-                        </form>
-                    {% endif %}
                     <hr>
                 </div>
             {% endfor %}
@@ -101,5 +110,6 @@
             <p>No books found.</p>
         {% endif %}
     {% endif %}
+    <script src="{{ url_for('static', filename='favorites.js') }}"></script>
 </body>
 </html>
