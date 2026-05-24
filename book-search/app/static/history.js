@@ -126,3 +126,13 @@ document.addEventListener("DOMContentLoaded", () => {
     setupViewedBookHistory();
     renderHistoryPage();
 });
+
+function setupViewedBookHistory() {
+    const viewedBookTitle = document.body.dataset.viewedBookTitle;
+
+    if (!viewedBookTitle) {
+        return;
+    }
+
+    addSearchQuery(viewedBookTitle);
+}

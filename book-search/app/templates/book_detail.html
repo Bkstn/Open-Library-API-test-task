@@ -5,14 +5,14 @@
 </head>
 
 
-<body>
+<body data-viewed-book-title="{{ book.name }}">
     <div
     id="viewed-book-data"
     data-book-title="{{ book.name }}"
 ></div>
 
     <p>
-        <a href="/">Back to search</a>
+        <a href="{{ book.return_url }}">Back to search</a>
     </p>
 
     <h1>{{ book.name }}</h1>
@@ -73,35 +73,7 @@
     </button>
 {% endif %}
 <script src="{{ url_for('static', filename='favorites.js') }}"></script>
-<script src="{{ url_for('static', filename='favorites.js') }}"></script>
-<script>
-    const SEARCH_HISTORY_KEY = "searchHistory";
-    const MAX_HISTORY_ITEMS = 10;
+<script src="{{ url_for('static', filename='history.js') }}"></script>
 
-    const viewedBookTitle = {{ book.name | tojson }};
-
-    let history = [];
-
-    try {
-        const savedHistory = localStorage.getItem(SEARCH_HISTORY_KEY);
-        history = savedHistory ? JSON.parse(savedHistory) : [];
-    } catch {
-        history = [];
-    }
-
-    if (viewedBookTitle && viewedBookTitle.trim()) {
-        history = history.filter(
-            item => item.toLowerCase() !== viewedBookTitle.toLowerCase()
-        );
-
-        history.unshift(viewedBookTitle);
-
-        if (history.length > MAX_HISTORY_ITEMS) {
-            history = history.slice(0, MAX_HISTORY_ITEMS);
-        }
-
-        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
-    }
-</script>
 </body>
 </html>

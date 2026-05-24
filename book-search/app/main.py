@@ -5,6 +5,7 @@ from utilities import create_book_from_openlibrary_json
 
 app = Flask(__name__)
 
+
 @app.get("/")
 def home():
     return render_template("index.html", books=None)
@@ -27,7 +28,7 @@ def search_books():
             total_pages=0,
             total_results=0
         )
-    
+
     limit = 10
 
     response = requests.get(
@@ -65,8 +66,11 @@ def search_books():
         total_results=total_results
     )
 
+
 @app.get("/book/<path:book_key>")
 def book_detail(book_key):
+    return_url = request.args.get("return_url", "/")
+
     work_response = requests.get(
         f"https://openlibrary.org/{book_key}.json",
         headers={
@@ -91,6 +95,7 @@ def book_detail(book_key):
 
     editions_response.raise_for_status()
     editions_data = editions_response.json()
+
     name = work_data.get("title", "Unknown title")
     publicationDate = work_data.get("first_publish_date")
     description_data = work_data.get("description")
@@ -157,18 +162,22 @@ def book_detail(book_key):
         "cover_page": cover_page,
         "description": description,
         "url": openlibrary_url,
-        "openlibrary_key": book_key
+        "openlibrary_key": book_key,
+        "return_url": return_url
     }
 
     return render_template("book_detail.html", book=book)
+
 
 @app.get("/favorites")
 def favorites():
     return render_template("favorites.html")
 
+
 @app.get("/history")
 def history():
     return render_template("history.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

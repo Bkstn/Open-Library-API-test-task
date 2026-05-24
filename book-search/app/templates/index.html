@@ -48,9 +48,13 @@
     </button>
                     <h3>
     {% if book.openlibrary_key %}
-        <a href="/book{{ book.openlibrary_key }}">
-            {{ book.name }}
-        </a>
+        <a href="{{ url_for(
+    'book_detail',
+    book_key=book.openlibrary_key.lstrip('/'),
+    return_url=request.full_path
+) }}">
+    {{ book.name }}
+</a>
     {% else %}
         {{ book.name }}
     {% endif %}
