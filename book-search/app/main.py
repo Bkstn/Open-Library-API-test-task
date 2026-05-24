@@ -166,5 +166,9 @@ def book_detail(book_key):
 def favorites():
     return render_template("favorites.html")
 
+@app.get("/history")
+def history():
+    return render_template("history.html")
+
 if __name__ == "__main__":
     app.run(debug=True)

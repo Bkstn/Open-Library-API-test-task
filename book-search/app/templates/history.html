@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search History</title>
+</head>
+<body>
+    <h1>Search History</h1>
+
+    <p>
+        <a href="{{ url_for('home') }}">Back to search</a> |
+        <a href="{{ url_for('favorites') }}">View Favorites</a>
+    </p>
+
+    <div id="history-list"></div>
+
+    <button id="clear-history-button" type="button">
+        Clear history
+    </button>
+
+    <script src="{{ url_for('static', filename='history.js') }}"></script>
+</body>
+</html>
