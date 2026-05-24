@@ -4,6 +4,11 @@
     <title>Book Search</title>
 </head>
 <body>
+
+    <p>
+    <a href="{{ url_for('favorites') }}">View Favorites</a>
+    </p>
+
     <h1>Book Search</h1>
 
     <form action="/search" method="get">
@@ -59,9 +64,39 @@
                         </p>
                     {% endif %}
 
+                    {% if book.openlibrary_key %}
+                        <form 
+                            action="{{ url_for('add_favorite', book_key=book.openlibrary_key.lstrip('/')) }}" 
+                            method="post"
+                        >
+                            <button type="submit">Add to favorites</button>
+                        </form>
+                    {% endif %}
                     <hr>
                 </div>
             {% endfor %}
+            {% if total_pages and total_pages > 1 %}
+    <div>
+        <p>
+            Page {{ page }} of {{ total_pages }}
+            — {{ total_results }} results found
+        </p>
+
+        {% if page > 1 %}
+            <a href="{{ url_for('search_books', title=search_title, page=page - 1) }}">
+                Previous
+            </a>
+        {% endif %}
+
+        {% if page < total_pages %}
+            <a href="{{ url_for('search_books', title=search_title, page=page + 1) }}">
+                Next
+            </a>
+        {% endif %}
+
+        
+    </div>
+{% endif %}
         {% else %}
             <p>No books found.</p>
         {% endif %}

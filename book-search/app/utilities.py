@@ -13,7 +13,7 @@ def create_book_from_openlibrary_json(book_json):
     cover_page = None
 
     if cover_id:
-        cover_page = f"https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
+        cover_page = f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
 
     key = book_json.get("key")
     url = None
