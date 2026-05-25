@@ -8,10 +8,10 @@
 <body>
     <h1>Search History</h1>
 
-    <p>
-        <a href="{{ url_for('home') }}">Back to search</a> |
-        <a href="{{ url_for('favorites') }}">View Favorites</a>
-    </p>
+    <nav class="page-nav">
+    <a class="nav-button" href="{{ url_for('home') }}">Back to Search</a>
+    <a class="nav-button" href="{{ url_for('favorites') }}">View Favorites</a>
+</nav>
 
     <div id="history-list"></div>
 

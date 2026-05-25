@@ -9,9 +9,10 @@
 <body>
     <h1>Favorite Books</h1>
 
-    <p>
-        <a href="{{ url_for('home') }}">Back to search</a>
-    </p>
+    <nav class="page-nav">
+    <a class="nav-button" href="{{ url_for('home') }}">Back to Search</a>
+    <a class="nav-button" href="{{ url_for('history') }}">Search History</a>
+</nav>
 
     <div id="favorites-list"></div>
 
