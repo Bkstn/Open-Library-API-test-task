@@ -5,6 +5,38 @@ from utilities import create_book_from_openlibrary_json
 
 app = Flask(__name__)
 
+OPEN_LIBRARY_HEADERS = {
+    "User-Agent": "MyBookApp (you@example.com)"
+}
+
+api_cache = {}
+
+
+def get_openlibrary_json(url, params=None):
+    if params is None:
+        params = {}
+
+    cache_key = (url, tuple(sorted(params.items())))
+
+    if cache_key in api_cache:
+        print("CACHE HIT:", cache_key)
+        return api_cache[cache_key]
+
+    print("API REQUEST:", cache_key)
+
+    response = requests.get(
+        url,
+        params=params,
+        headers=OPEN_LIBRARY_HEADERS,
+        timeout=10
+    )
+
+    response.raise_for_status()
+    data = response.json()
+
+    api_cache[cache_key] = data
+
+    return data
 
 @app.get("/")
 def home():
@@ -13,7 +45,7 @@ def home():
 
 @app.get("/search")
 def search_books():
-    title = request.args.get("title", "")
+    title = request.args.get("title", "").strip()
     page = request.args.get("page", 1, type=int)
 
     if page < 1:
@@ -31,22 +63,15 @@ def search_books():
 
     limit = 10
 
-    response = requests.get(
-        "https://openlibrary.org/search.json",
-        params={
-            "title": title,
-            "limit": limit,
-            "page": page,
-            "fields": "key,title,author_name,first_publish_year,isbn,cover_i"
-        },
-        headers={
-            "User-Agent": "MyBookApp (you@example.com)"
-        },
-        timeout=10
-    )
-
-    response.raise_for_status()
-    data = response.json()
+    data = get_openlibrary_json(
+    "https://openlibrary.org/search.json",
+    params={
+        "title": title,
+        "limit": limit,
+        "page": page,
+        "fields": "key,title,author_name,first_publish_year,isbn,cover_i"
+    }
+)
 
     books = []
 
@@ -71,30 +96,16 @@ def search_books():
 def book_detail(book_key):
     return_url = request.args.get("return_url", "/")
 
-    work_response = requests.get(
-        f"https://openlibrary.org/{book_key}.json",
-        headers={
-            "User-Agent": "MyBookApp (you@example.com)"
-        },
-        timeout=10
+    work_data = get_openlibrary_json(
+    f"https://openlibrary.org/{book_key}.json"
     )
 
-    work_response.raise_for_status()
-    work_data = work_response.json()
-
-    editions_response = requests.get(
-        f"https://openlibrary.org/{book_key}/editions.json",
-        params={
-            "limit": 20
-        },
-        headers={
-            "User-Agent": "MyBookApp (you@example.com)"
-        },
-        timeout=10
-    )
-
-    editions_response.raise_for_status()
-    editions_data = editions_response.json()
+    editions_data = get_openlibrary_json(
+    f"https://openlibrary.org/{book_key}/editions.json",
+    params={
+        "limit": 20
+    }
+)
 
     name = work_data.get("title", "Unknown title")
     publicationDate = work_data.get("first_publish_date")
@@ -111,20 +122,18 @@ def book_detail(book_key):
         author_key = author_item.get("author", {}).get("key")
 
         if author_key:
-            author_response = requests.get(
-                f"https://openlibrary.org{author_key}.json",
-                headers={
-                    "User-Agent": "MyBookApp (you@example.com)"
-                },
-                timeout=10
-            )
+            try:
+                author_data = get_openlibrary_json(
+                    f"https://openlibrary.org{author_key}.json"
+                )
 
-            if author_response.status_code == 200:
-                author_data = author_response.json()
                 author_name = author_data.get("name")
 
                 if author_name:
                     authors.append(author_name)
+
+            except requests.RequestException:
+                pass
 
     ISBN = None
     cover_page = None

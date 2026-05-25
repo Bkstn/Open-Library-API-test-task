@@ -19,13 +19,16 @@ function saveFavorites(favorites) {
 }
 
 function isFavorite(bookId) {
+    const normalizedId = normalizeBookId(bookId);
     const favorites = getFavorites();
 
-    return favorites.some(book => book.id === bookId);
+    return favorites.some(book => normalizeBookId(book.id) === normalizedId);
 }
 
 function addFavorite(book) {
     const favorites = getFavorites();
+
+    book.id = normalizeBookId(book.id);
 
     if (!isFavorite(book.id)) {
         favorites.push(book);
@@ -34,16 +37,19 @@ function addFavorite(book) {
 }
 
 function removeFavorite(bookId) {
+    const normalizedId = normalizeBookId(bookId);
     const favorites = getFavorites();
 
-    const updatedFavorites = favorites.filter(book => book.id !== bookId);
+    const updatedFavorites = favorites.filter(
+        book => normalizeBookId(book.id) !== normalizedId
+    );
 
     saveFavorites(updatedFavorites);
 }
 
 function buildBookFromButton(button) {
     return {
-        id: button.dataset.bookId,
+        id: normalizeBookId(button.dataset.bookId),
         title: button.dataset.bookTitle,
         authors: button.dataset.bookAuthors,
         year: button.dataset.bookYear,
@@ -66,6 +72,34 @@ function updateFavoriteButtons() {
             button.textContent = "Add to favorites";
         }
     });
+}
+
+function normalizeBookId(bookId) {
+    if (!bookId) {
+        return "";
+    }
+
+    return String(bookId).replace(/^\/+/, "");
+}
+
+function removeDuplicateFavorites() {
+    const favorites = getFavorites();
+    const uniqueFavorites = [];
+
+    favorites.forEach(book => {
+        const normalizedId = normalizeBookId(book.id);
+
+        const alreadyExists = uniqueFavorites.some(
+            savedBook => normalizeBookId(savedBook.id) === normalizedId
+        );
+
+        if (!alreadyExists) {
+            book.id = normalizedId;
+            uniqueFavorites.push(book);
+        }
+    });
+
+    saveFavorites(uniqueFavorites);
 }
 
 function setupFavoriteButtons() {
@@ -165,7 +199,9 @@ function renderFavoritesPage() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    removeDuplicateFavorites();
     setupFavoriteButtons();
     updateFavoriteButtons();
     renderFavoritesPage();
 });
+
