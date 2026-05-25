@@ -5,119 +5,139 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
+
 <body>
+    <main>
+        <nav class="page-nav">
+            <a class="nav-button" href="{{ url_for('favorites') }}">View Favorites</a>
+            <a class="nav-button" href="{{ url_for('history') }}">Search History</a>
+        </nav>
 
-    <nav class="page-nav">
-    <a class="nav-button" href="{{ url_for('favorites') }}">View Favorites</a>
-    <a class="nav-button" href="{{ url_for('history') }}">Search History</a>
-</nav>
+        <h1>Book Search</h1>
 
-    <h1>Book Search</h1>
+        <form id="search-form" class="search-form" action="{{ url_for('search_books') }}" method="get">
+            <input
+                id="search-input"
+                type="text"
+                name="title"
+                placeholder="Enter book title"
+                value="{{ search_title or '' }}"
+            >
+            <button type="submit">Search</button>
+        </form>
 
-    <form id="search-form" action="{{ url_for('search_books') }}" method="get">
-        <input 
-    id="search-input"
-    type="text" 
-    name="title" 
-    placeholder="Enter book title"
-    value="{{ search_title or '' }}"
->
-        <button type="submit">Search</button>
-    </form>
+        {% if books is not none %}
+            <h2>Results</h2>
 
-    {% if books is not none %}
-        <h2>Results</h2>
+            {% if books %}
+                {% for book in books %}
+                    <div class="book-card">
+                        {% if book.cover_page %}
+                            <img src="{{ book.cover_page }}" width="120" alt="Book cover">
+                        {% endif %}
 
-        {% if books %}
-            {% for book in books %}
-            {% if book.openlibrary_key %}
-    
-{% endif %}
-                <div>
-                    <button
-        type="button"
-        class="favorite-button"
-        data-book-id="{{ book.openlibrary_key }}"
-        data-book-title="{{ book.name }}"
-        data-book-authors="{{ book.authors | join(', ') }}"
-        data-book-year="{{ book.publicationDate or '' }}"
-        data-book-isbn="{{ book.ISBN or '' }}"
-        data-book-cover="{{ book.cover_page or '' }}"
-        data-book-url="{{ book.url or '' }}"
-        data-book-detail-url="{{ url_for('book_detail', book_key=book.openlibrary_key.lstrip('/')) }}"
-    >
-        Add to favorites
-    </button>
-                    <h3>
-    {% if book.openlibrary_key %}
-        <a href="{{ url_for(
-    'book_detail',
-    book_key=book.openlibrary_key.lstrip('/'),
-    return_url=request.full_path
-) }}">
-    {{ book.name }}
-</a>
-    {% else %}
-        {{ book.name }}
-    {% endif %}
-</h3>
+                        <div class="book-info">
+                            <h3>
+                                {% if book.openlibrary_key %}
+                                    <a href="{{ url_for(
+                                        'book_detail',
+                                        book_key=book.openlibrary_key.lstrip('/'),
+                                        return_url=request.full_path
+                                    ) }}">
+                                        {{ book.name }}
+                                    </a>
+                                {% else %}
+                                    {{ book.name }}
+                                {% endif %}
+                            </h3>
 
-                    <p>
-                        <strong>Authors:</strong>
-                        {{ book.authors | join(", ") }}
-                    </p>
+                            <p>
+                                <strong>Authors:</strong>
+                                {% if book.authors %}
+                                    {{ book.authors | join(", ") }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </p>
 
-                    <p>
-                        <strong>Published:</strong>
-                        {{ book.publicationDate or "Unknown" }}
-                    </p>
+                            <p>
+                                <strong>Published:</strong>
+                                {{ book.publicationDate or "Unknown" }}
+                            </p>
 
-                    <p>
-                        <strong>ISBN:</strong>
-                        {{ book.ISBN or "No ISBN found" }}
-                    </p>
+                            <p>
+                                <strong>ISBN:</strong>
+                                {{ book.ISBN or "No ISBN found" }}
+                            </p>
 
-                    {% if book.cover_page %}
-                        <img src="{{ book.cover_page }}" width="120">
-                    {% endif %}
+                            {% if book.url %}
+                                <p>
+                                    <a href="{{ book.url }}" target="_blank">
+                                        View on Open Library
+                                    </a>
+                                </p>
+                            {% endif %}
 
-                    {% if book.url %}
+                            {% if book.openlibrary_key %}
+                                <button
+                                    type="button"
+                                    class="favorite-button"
+                                    data-book-id="{{ book.openlibrary_key }}"
+                                    data-book-title="{{ book.name }}"
+                                    data-book-authors="{{ book.authors | join(', ') }}"
+                                    data-book-year="{{ book.publicationDate or '' }}"
+                                    data-book-isbn="{{ book.ISBN or '' }}"
+                                    data-book-cover="{{ book.cover_page or '' }}"
+                                    data-book-url="{{ book.url or '' }}"
+                                    data-book-detail-url="{{ url_for('book_detail', book_key=book.openlibrary_key.lstrip('/')) }}"
+                                >
+                                    Add to favorites
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                {% if total_pages and total_pages > 1 %}
+                    <div class="pagination">
                         <p>
-                            <a href="{{ book.url }}" target="_blank">
-                                View on Open Library
-                            </a>
+                            Page {{ page }} of {{ total_pages }}
+                            — {{ total_results }} results found
                         </p>
-                    {% endif %}
 
-                    <hr>
-                </div>
-            {% endfor %}
-            {% if total_pages and total_pages > 1 %}
-    <div>
-        <p>
-            Page {{ page }} of {{ total_pages }}
-            — {{ total_results }} results found
-        </p>
+                        {% if page > 1 %}
+                            <a href="{{ url_for('search_books', title=search_title, page=page - 1) }}">
+                                Previous
+                            </a>
+                        {% endif %}
 
-        {% if page > 1 %}
-            <a href="{{ url_for('search_books', title=search_title, page=page - 1) }}">
-                Previous
-            </a>
+                        {% for pagination_page in pagination_pages %}
+                            {% if pagination_page == "..." %}
+                                <span class="pagination-dots">...</span>
+                            {% elif pagination_page == page %}
+                                <span class="pagination-current">
+                                    {{ pagination_page }}
+                                </span>
+                            {% else %}
+                                <a href="{{ url_for('search_books', title=search_title, page=pagination_page) }}">
+                                    {{ pagination_page }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page < total_pages %}
+                            <a href="{{ url_for('search_books', title=search_title, page=page + 1) }}">
+                                Next
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <p class="empty-message">No books found.</p>
+            {% endif %}
         {% endif %}
+    </main>
 
-        {% if page < total_pages %}
-            <a href="{{ url_for('search_books', title=search_title, page=page + 1) }}">
-                Next
-            </a>
-        {% endif %}
-
-        
-    </div>
-{% endif %}
-        {% else %}
-            <p>No books found.</p>
-        {% endif %}
-    {% endif %}
     <script src="{{ url_for('static', filename='favorites.js') }}"></script>
     <script src="{{ url_for('static', filename='history.js') }}"></script>
 </body>

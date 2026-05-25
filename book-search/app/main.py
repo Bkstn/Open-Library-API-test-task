@@ -53,13 +53,14 @@ def search_books():
 
     if not title:
         return render_template(
-            "index.html",
-            books=[],
-            search_title=title,
-            page=1,
-            total_pages=0,
-            total_results=0
-        )
+        "index.html",
+        books=[],
+        search_title=title,
+        page=1,
+        total_pages=0,
+        total_results=0,
+        pagination_pages=[]
+)
 
     limit = 10
 
@@ -81,15 +82,17 @@ def search_books():
 
     total_results = data.get("numFound", data.get("num_found", 0))
     total_pages = math.ceil(total_results / limit)
+    pagination_pages = build_pagination_pages(page, total_pages)
 
     return render_template(
-        "index.html",
-        books=books,
-        search_title=title,
-        page=page,
-        total_pages=total_pages,
-        total_results=total_results
-    )
+    "index.html",
+    books=books,
+    search_title=title,
+    page=page,
+    total_pages=total_pages,
+    total_results=total_results,
+    pagination_pages=pagination_pages
+)
 
 
 @app.get("/book/<path:book_key>")
@@ -185,6 +188,46 @@ def favorites():
 @app.get("/history")
 def history():
     return render_template("history.html")
+
+def build_pagination_pages(current_page, total_pages):
+    pages = []
+
+    if total_pages <= 10:
+        return list(range(1, total_pages + 1))
+
+    # Always show first pages
+    first_pages = [1, 2]
+
+    # Show pages around current page
+    middle_pages = [
+        current_page - 2,
+        current_page - 1,
+        current_page,
+        current_page + 1,
+        current_page + 2
+    ]
+
+    # Always show last pages
+    last_pages = [total_pages - 1, total_pages]
+
+    combined_pages = first_pages + middle_pages + last_pages
+
+    # Remove invalid pages and duplicates
+    valid_pages = sorted(set(
+        page for page in combined_pages
+        if 1 <= page <= total_pages
+    ))
+
+    previous_page = None
+
+    for page in valid_pages:
+        if previous_page is not None and page - previous_page > 1:
+            pages.append("...")
+
+        pages.append(page)
+        previous_page = page
+
+    return pages
 
 if __name__ == "__main__":
     app.run(debug=True)
