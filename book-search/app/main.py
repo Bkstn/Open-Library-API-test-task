@@ -20,23 +20,30 @@ def get_openlibrary_json(url, params=None):
 
     if cache_key in api_cache:
         print("CACHE HIT:", cache_key)
-        return api_cache[cache_key]
+        return api_cache[cache_key], None
 
     print("API REQUEST:", cache_key)
 
-    response = requests.get(
-        url,
-        params=params,
-        headers=OPEN_LIBRARY_HEADERS,
-        timeout=10
-    )
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            headers=OPEN_LIBRARY_HEADERS,
+            timeout=10
+        )
 
-    response.raise_for_status()
-    data = response.json()
+        response.raise_for_status()
+        data = response.json()
+
+    except requests.RequestException:
+        return None, "Open Library API is currently unavailable."
+
+    except ValueError:
+        return None, "Open Library returned invalid JSON data."
 
     api_cache[cache_key] = data
 
-    return data
+    return data, None
 
 @app.get("/")
 def home():
@@ -60,23 +67,49 @@ def search_books():
         total_pages=0,
         total_results=0,
         pagination_pages=[]
-)
+        )
 
     limit = 10
 
-    data = get_openlibrary_json(
+    data, error_message = get_openlibrary_json(
     "https://openlibrary.org/search.json",
     params={
         "title": title,
         "limit": limit,
         "page": page,
         "fields": "key,title,author_name,first_publish_year,isbn,cover_i"
-    }
-)
+        }
+        )
+
+    if error_message:
+        return render_template(
+            "index.html",
+            books=[],
+            search_title=title,
+            page=1,
+            total_pages=0,
+            total_results=0,
+            pagination_pages=[],
+            error_message=error_message
+        )
+
+    docs = data.get("docs", [])
+
+    if not isinstance(docs, list):
+        return render_template(
+            "index.html",
+            books=[],
+            search_title=title,
+            page=1,
+            total_pages=0,
+            total_results=0,
+            pagination_pages=[],
+            error_message="Open Library returned unexpected data."
+        )
 
     books = []
 
-    for book_json in data["docs"]:
+    for book_json in docs:
         book = create_book_from_openlibrary_json(book_json)
         books.append(book)
 
@@ -92,23 +125,49 @@ def search_books():
     total_pages=total_pages,
     total_results=total_results,
     pagination_pages=pagination_pages
-)
+    )
 
 
 @app.get("/book/<path:book_key>")
 def book_detail(book_key):
     return_url = request.args.get("return_url", "/")
 
-    work_data = get_openlibrary_json(
-    f"https://openlibrary.org/{book_key}.json"
+    work_data, error_message = get_openlibrary_json(
+        f"https://openlibrary.org/{book_key}.json"
     )
 
-    editions_data = get_openlibrary_json(
-    f"https://openlibrary.org/{book_key}/editions.json",
-    params={
-        "limit": 20
-    }
-)
+    if error_message:
+        return render_template(
+            "book_detail.html",
+            book=None,
+            error_message=error_message,
+            return_url=return_url
+            )
+
+    editions_data, error_message = get_openlibrary_json(
+        f"https://openlibrary.org/{book_key}/editions.json",
+        params={
+            "limit": 20
+        }
+    )
+
+    if error_message:
+        editions_data = {
+            "entries": []
+        }
+
+    if not isinstance(work_data, dict):
+        return render_template(
+            "book_detail.html",
+            book=None,
+            error_message="Open Library returned unexpected book data.",
+            return_url=return_url
+        )
+
+    if not isinstance(editions_data, dict):
+        editions_data = {
+            "entries": []
+        }
 
     name = work_data.get("title", "Unknown title")
     publicationDate = work_data.get("first_publish_date")
@@ -125,18 +184,15 @@ def book_detail(book_key):
         author_key = author_item.get("author", {}).get("key")
 
         if author_key:
-            try:
-                author_data = get_openlibrary_json(
-                    f"https://openlibrary.org{author_key}.json"
-                )
+            author_data, author_error = get_openlibrary_json(
+                f"https://openlibrary.org{author_key}.json"
+            )
 
+            if not author_error and isinstance(author_data, dict):
                 author_name = author_data.get("name")
 
                 if author_name:
                     authors.append(author_name)
-
-            except requests.RequestException:
-                pass
 
     ISBN = None
     cover_page = None
@@ -179,7 +235,6 @@ def book_detail(book_key):
     }
 
     return render_template("book_detail.html", book=book)
-
 
 @app.get("/favorites")
 def favorites():

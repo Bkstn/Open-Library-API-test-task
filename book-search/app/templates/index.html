@@ -25,7 +25,9 @@
             >
             <button type="submit">Search</button>
         </form>
-
+{% if error_message %}
+    <p class="empty-message">{{ error_message }}</p>
+{% endif %}
         {% if books is not none %}
             <h2>Results</h2>
 
